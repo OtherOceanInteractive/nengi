@@ -1,12 +1,17 @@
 {
     "name": "nengi",
-    "version": "1.9.0",
+    "version": "1.13.1",
     "description": "multiplayer game networking for node.js and html5",
     "main": "index.js",
     "browser": "indexBrowser.js",
     "scripts": {
         "start": "npx jasmine"
     },
+    "homepage": "https://timetocode.com/nengi",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/timetocode/nengi.git"
+      },
     "keywords": [
         "multiplayer",
         "networking",
@@ -22,7 +27,7 @@
     "author": "Alex Bennett // timetocode",
     "license": "Apache 2.0",
     "dependencies": {
-        "@clusterws/cws": "^0.14.0",
+        "@clusterws/cws": "0.17.2",
         "esm": "^3.2.22",
         "utf8": "^3.0.0"
     },
