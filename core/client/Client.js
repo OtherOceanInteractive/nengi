@@ -13,7 +13,7 @@ import { EventEmitter } from 'events'
 
 class Client extends EventEmitter {
     constructor(config, interpDelay) {
-		super()
+        super()
         this.config = config
         this.protocols = new ProtocolMap(config, metaConfig)
 
@@ -21,16 +21,13 @@ class Client extends EventEmitter {
         this.connectionOpen = null
         this.connectionClose = null
         this.websocket = null
-    }
-
-    init() {
+        this.snapshots = []
         this.outbound = new Outbound(this.protocols, this.websocket, this.config)
         this.chronus = new Chronus()
 
         this.entityCache = new EntityCache(this.config)
         this.interpolator = new Interpolator(this.config)
 
-        this.snapshots = []
         this.latestWorldState = null
         this.serverTick = 0
         this.tickLength = 1000 / this.config.UPDATE_RATE
@@ -73,7 +70,7 @@ class Client extends EventEmitter {
         }
     }
 
-    handleMessage(message) { 
+    handleMessage(message) {
         let snapshot = readSnapshotBuffer(
             message.data,
             this.protocols,
@@ -140,8 +137,6 @@ class Client extends EventEmitter {
     }
 
     connect(address, handshake) {
-        this.init()
-
         this.websocket = new WebSocket(address, 'nengi-protocol')
         this.outbound.websocket = this.websocket
         this.websocket.binaryType = 'arraybuffer'
@@ -176,8 +171,6 @@ class Client extends EventEmitter {
     }
 
     mockConnect(mockSocket, handshake) {
-        this.init()
-
         this.websocket = mockSocket
         this.outbound.websocket = this.websocket
         this.websocket.binaryType = 'arraybuffer'
@@ -187,6 +180,7 @@ class Client extends EventEmitter {
         }
 
         this.websocket.on('open', (event) => {
+            this.emit('connected', event)
             this.websocket.send(createHandshakeBuffer(handshake).byteArray)
         })
 
@@ -195,6 +189,7 @@ class Client extends EventEmitter {
         })
 
         this.websocket.on('close', () => {
+            this.emit('disconnected')
             if (this.connectionClose) {
                 this.connectionClose()
             }
@@ -229,6 +224,37 @@ class Client extends EventEmitter {
 
         return obj
 
+    }
+
+    readNetworkAndEmit() {
+        const network = this.readNetwork()
+
+        network.messages.forEach((message) => {
+            this.emit(`message::${message.protocol.name}`, message)
+        })
+
+        network.localMessages.forEach((localMessage) => {
+            this.emit(`message::${localMessage.protocol.name}`, localMessage)
+        })
+
+        network.entities.forEach((snapshot) => {
+            snapshot.createEntities.forEach((entity) => {
+                this.emit(`create::${entity.protocol.name}`, entity)
+                this.emit(`create`, entity)
+            })
+
+            snapshot.updateEntities.forEach((update) => {
+                this.emit(`update`, update)
+            })
+
+            snapshot.deleteEntities.forEach((id) => {
+                this.emit(`delete`, id)
+            })
+        })
+
+        network.predictionErrors.forEach((predictionErrorFrame) => {
+            this.emit(`predictionErrorFrame`, predictionErrorFrame)
+        })
     }
 
     getUnconfirmedCommands() {
