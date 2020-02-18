@@ -75,7 +75,7 @@ class Instance extends EventEmitter {
         this.channels = new EDictionary()
         this.channelCount = 0
 
-        this.sources = new Map()
+        // this.sources = new Map()
 
         this.localEvents = []
         this.proxyCache = {}
@@ -230,7 +230,7 @@ class Instance extends EventEmitter {
             this.pendingClients.delete(client.connection)
             this.addClient(client)
             client.accepted = true
-    
+
             var bitBuffer = createConnectionResponseBuffer(true, text)
             var buffer = bitBuffer.toBuffer()
 
@@ -246,7 +246,7 @@ class Instance extends EventEmitter {
 
             client.id = -1
             client.instance = null
-            
+
             client.connection.close()
             if (typeof this.disconnectCallback === 'function') {
                 this.disconnectCallback(client, null)
@@ -282,7 +282,7 @@ class Instance extends EventEmitter {
             this.clients.remove(client)
             client.id = -1
             client.instance = null
-            
+
             if (typeof this.disconnectCallback === 'function') {
                 this.disconnectCallback(client, event)
             }
@@ -312,43 +312,53 @@ class Instance extends EventEmitter {
         return this.clients.get(id)
     }
 
-    registerEntity(entity, sourceId) {
-        // const id = this.entityIdPool.nextId()
-        let nid = entity[this.config.ID_PROPERTY_NAME]
-        if (!this.sources.has(nid)) {
-            nid = this.entityIdPool.nextId()
-            entity[this.config.ID_PROPERTY_NAME] = nid
-            entity[this.config.TYPE_PROPERTY_NAME] = this.protocols.getIndex(entity.protocol)
-            this.sources.set(nid, new Set())
-            this._entities.add(entity)
-        }
-        const entitySources = this.sources.get(nid)
-        entitySources.add(sourceId)
-        //console.log('registered source', sourceId, nid)
-        //console.log('sources', this.sources)
-        return nid
-    }
+    // registerEntity(entity, sourceId) {
+    // const id = this.entityIdPool.nextId()
+    //         let nid = entity[this.config.ID_PROPERTY_NAME]
+    // // console.log("ENTITYALREADYHASANID", nid)
+    // if (!this.sources.has(nid)) {
+    //     nid = this.entityIdPool.nextId()
+    //     entity[this.config.ID_PROPERTY_NAME] = nid
+    //     entity[this.config.TYPE_PROPERTY_NAME] = this.protocols.getIndex(entity.protocol)
+    //     this.sources.set(nid, new Set())
+    //     this._entities.add(entity)
+    // }
+    // // console.log("ENTITY NID THAT WE DECIDED", nid)
+    // const entitySources = this.sources.get(nid)
+    // entitySources.add(sourceId)
+    // //console.log('registered source', sourceId, nid)
+    // //console.log('sources', this.sources)
+    // return nid
+    // }
 
-    unregisterEntity(entity, sourceId) {
-        const nid = entity[this.config.ID_PROPERTY_NAME]
-        const entitySources = this.sources.get(nid)
-        entitySources.delete(sourceId)
-        //console.log('unregistering source', sourceId, nid)
+    // unregisterEntity(entity, sourceId) {
+    //     // console.log("unregistering entity", entity)
+    //     // console.log("sourceId", sourceId)
+    //     const nid = entity[this.config.ID_PROPERTY_NAME]
+    //     // console.log("nid", nid)
+    //     const entitySources = this.sources.get(nid)
+    //     // console.log("entity sources", entitySources)
+    //     entitySources.delete(sourceId)
+    //     //console.log('unregistering source', sourceId, nid)
 
-        if (entitySources.size === 0) {
-            this.sources.delete(nid)
-            this._entities.remove(entity)
-            this.entityIdPool.queueReturnId(nid)
-            entity[this.config.ID_PROPERTY_NAME] = -1
-            //console.log('entity is fully unregistered now')
-        }
-    }
+    //     if (entitySources.size === 0) {
+    //         this.sources.delete(nid)
+    //         this._entities.remove(entity)
+    //         this.entityIdPool.queueReturnId(nid)
+    //         entity[this.config.ID_PROPERTY_NAME] = -1
+    //         //console.log('entity is fully unregistered now')
+    //     }
+    // }
 
     addEntity(entity) {
         if (!entity.protocol) {
             throw new Error('Object is missing a protocol or protocol was not supplied via config.')
         }
-        this.registerEntity(entity, -1)
+
+        const nid = this.entityIdPool.nextId()
+        entity[this.config.ID_PROPERTY_NAME] = nid
+        entity[this.config.TYPE_PROPERTY_NAME] = this.protocols.getIndex(entity.protocol)
+        this._entities.add(entity)
         this.entities.add(entity)
 
         if (!this.config.USE_HISTORIAN) {
@@ -364,7 +374,9 @@ class Instance extends EventEmitter {
         const id = entity[this.config.ID_PROPERTY_NAME]
         this.deleteEntities.push(id)
         this.entities.remove(entity)
-        this.unregisterEntity(entity, -1)
+        this._entities.remove(entity)
+        this.entityIdPool.queueReturnId(id)
+        entity[this.config.ID_PROPERTY_NAME] = -1
         return entity
     }
 
@@ -423,17 +435,17 @@ class Instance extends EventEmitter {
         const recurse = (message) => {
             console.log('recurse', message.protocol)
             message[this.config.TYPE_PROPERTY_NAME] = this.protocols.getIndex(message.protocol)
-
+    
             const properties = Object.keys(message.protocol.properties)
             properties.forEach(prop => {
                 console.log('********', prop, message.protocol.properties[prop])
             })
         }
         //recurse(message)
-
+    
         if (message.outers) {
             //console.log('>>>>>', message.protocol, message.outers[0].protocol, message.outers[0].inners[0].protocol)
-
+    
             //message.outers[0].protocol
             //message.outers[0].protocol.properties.inners.protocol = message.outers[0].protocol.inners.prototype.protocol 
         }
@@ -559,7 +571,7 @@ class Instance extends EventEmitter {
             'channels', this.channels.toArray().length
         )
         */
-        
+
 
 
         //console.log(this.entities.toArray())

@@ -124,6 +124,9 @@ declare namespace nengi {
          */
         messageAll(message: any): void
 
+        // TODO
+        addLocalMessage(message: any): void
+
         /**
          * Sends network snapshots to all clients. To be invoked towards the end of a game tick in most cases.
          */
