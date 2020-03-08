@@ -93,7 +93,7 @@ class Instance extends EventEmitter {
             this.emit('connect', { client, data, callback })
         }
         this.disconnectCallback = (client) => {
-            instance.emit('disconnect', client)
+            this.emit('disconnect', client)
         }
 
         this.httpServer = null
