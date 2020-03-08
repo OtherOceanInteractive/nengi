@@ -89,8 +89,12 @@ class Instance extends EventEmitter {
         this.commands = []
 
         this.transferCallback = null
-        this.connectCallback = null
-        this.disconnectCallback = null
+        this.connectCallback = (client, data, callback) => {
+            this.emit('connect', { client, data, callback })
+        }
+        this.disconnectCallback = (client) => {
+            instance.emit('disconnect', client)
+        }
 
         this.httpServer = null
         this.wsServer = null
@@ -161,6 +165,24 @@ class Instance extends EventEmitter {
         this.sleepManager.wakeOnce(entity.id)
     }
 
+    emitCommands() {
+        let cmd = this.getNextCommand()
+        while (cmd) {
+            const tick = cmd.tick
+            const client = cmd.client
+
+            for (const command of cmd.commands) {
+                this.emit(`command::${command.protocol.name}`, {
+                    command,
+                    client,
+                    tick,
+                })
+            }
+
+            cmd = this.getNextCommand()
+        }
+    }
+
     onMessage(message, client) {
         try {
             //console.log('message', message)
@@ -221,10 +243,6 @@ class Instance extends EventEmitter {
         return cmd
     }
 
-    onConnect(callback) {
-        this.connectCallback = callback
-    }
-
     acceptConnection(client, text) {
         if (client.connection.readyState === 1) {
             this.pendingClients.delete(client.connection)
@@ -273,9 +291,6 @@ class Instance extends EventEmitter {
         return client
     }
 
-    onDisconnect(callback) {
-        this.disconnectCallback = callback
-    }
 
     disconnect(client, event) {
         if (this.clients.get(client.id)) {
@@ -373,8 +388,8 @@ class Instance extends EventEmitter {
         }
         const id = entity[this.config.ID_PROPERTY_NAME]
         this.deleteEntities.push(id)
-        this.entities.remove(entity)
         this._entities.remove(entity)
+        this.entities.remove(entity)
         this.entityIdPool.queueReturnId(id)
         entity[this.config.ID_PROPERTY_NAME] = -1
         return entity
