@@ -235,7 +235,7 @@ class Client extends EventEmitter {
         })
 
         network.localMessages.forEach((localMessage) => {
-            this.emit(`message`, message)
+            this.emit(`message`, localMessage)
             this.emit(`message::${localMessage.protocol.name}`, localMessage)
         })
 
