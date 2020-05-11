@@ -230,10 +230,12 @@ class Client extends EventEmitter {
         const network = this.readNetwork()
 
         network.messages.forEach((message) => {
+            this.emit(`message`, message)
             this.emit(`message::${message.protocol.name}`, message)
         })
 
         network.localMessages.forEach((localMessage) => {
+            this.emit(`message`, message)
             this.emit(`message::${localMessage.protocol.name}`, localMessage)
         })
 
