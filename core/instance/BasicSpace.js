@@ -60,15 +60,16 @@ BasicSpace.prototype.queryArea = function(aabb) {
     var entities = this.entities.toArray()
 
     for (var i = 0; i < entities.length; i++) {
-    	var entity = entities[i]
+        var entity = entities[i]
+        const radius = entity.visibilityRadius || 0
 
-    	if (entity.x <= maxX 
-    		&& entity.x >= minX 
-    		&& entity.y <= maxY 
-    		&& entity.y >= minY) {
+        if (entity.x - radius <= maxX
+            && entity.x + radius >= minX
+            && entity.y - radius <= maxY
+            && entity.y + radius >= minY) {
 
-    		entitiesInArea.push(entity)
-    	}
+            entitiesInArea.push(entity)
+        }
     }
 
     var events = this.events.toArray()
