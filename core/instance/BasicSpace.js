@@ -36,11 +36,12 @@ BasicSpace.prototype.queryAreaEMap = function(aabb) {
     
     for (var i = 0; i < entities.length; i++) {
         var entity = entities[i]
+        const radius = entity.visibilityRadius || 0
 
-        if (entity.x <= maxX 
-            && entity.x >= minX 
-            && entity.y <= maxY 
-            && entity.y >= minY) {
+        if (entity.x - radius <= maxX
+            && entity.x + radius >= minX
+            && entity.y - radius <= maxY
+            && entity.y + radius >= minY) {
 
             entitiesInArea.set(entity[this.ID_PROPERTY_NAME], entity)
         }
@@ -75,15 +76,15 @@ BasicSpace.prototype.queryArea = function(aabb) {
     var events = this.events.toArray()
 
     for (var i = 0; i < events.length; i++) {
-    	var event = events[i]
+        var event = events[i]
 
-    	if (event.x <= maxX 
-    		&& event.x >= minX 
-    		&& event.y <= maxY 
-    		&& event.y >= minY) {
+        if (event.x <= maxX
+            && event.x >= minX
+            && event.y <= maxY
+            && event.y >= minY) {
 
-    		eventsInArea.push(event)
-    	}
+            eventsInArea.push(event)
+        }
     }
     return { entities: entitiesInArea, events: eventsInArea}
 }
