@@ -134,7 +134,7 @@ class Instance extends EventEmitter {
 
             ws.on('close', (event) => {
                 if (this.config.LOGGING) {
-                    console.log(`nengi: ws close id:${client.nid}`)
+                    console.log(`nengi: ws close id:${client.id}`)
                 }
                 this.disconnect(client, event)
             })
