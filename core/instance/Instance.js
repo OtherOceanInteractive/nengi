@@ -35,7 +35,8 @@ const defaults = {
     ID_PROPERTY_NAME: 'nid',
     ID_BINARY_TYPE: BinaryType.UInt16,
     TYPE_PROPERTY_NAME: 'ntype',
-    TYPE_BINARY_TYPE: BinaryType.UInt8
+    TYPE_BINARY_TYPE: BinaryType.UInt8,
+    LOGGING: false
 }
 
 class Instance extends EventEmitter {
@@ -132,6 +133,9 @@ class Instance extends EventEmitter {
             })
 
             ws.on('close', (event) => {
+                if (this.config.LOGGING) {
+                    console.log(`nengi: ws close id:${client.nid}`)
+                }
                 this.disconnect(client, event)
             })
         })
@@ -292,6 +296,9 @@ class Instance extends EventEmitter {
     }
 
     disconnect(client, event) {
+        if (this.config.LOGGING) {
+            console.log(`nengi: disconnect:${client.id}`)
+        }
         if (this.clients.get(client.id)) {
             this.clients.remove(client)
             client.id = -1
@@ -331,6 +338,9 @@ class Instance extends EventEmitter {
 
     addClient(client) {
         client.id = this.clientId++
+        if (this.config.LOGGING) {
+            console.log(`nengi: add client:${client.id}`)
+        }
         client.instance = this
         this.clients.add(client)
         return client
