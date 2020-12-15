@@ -49,7 +49,7 @@ class Client {
         this.channels.push(channel)
         channel.entities.forEach(entity => {
             //console.log('entity in channel', entity)
-            this.addCreate(entity.id)
+            this.addCreate(entity[this.config.ID_PROPERTY_NAME])
         })
     }
 

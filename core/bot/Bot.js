@@ -1,5 +1,5 @@
-import ProtocolMap from '../protocol/ProtocolMap';
-import metaConfig from '../common/metaConfig';
+// import ProtocolMap from '../protocol/ProtocolMap';
+// import metaConfig from '../common/metaConfig';
 import createHandshakeBuffer from '../snapshot/writer/createHandshakeBuffer';
 import readSnapshotBuffer from '../snapshot/reader/readSnapshotBuffer';
 import EntityCache from '../instance/EntityCache';
