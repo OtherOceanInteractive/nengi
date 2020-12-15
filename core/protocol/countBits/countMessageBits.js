@@ -11,18 +11,15 @@ function countMessageBits(proxy, protocol, initialPosition) {
         var propName = protocol.keys[i]
         var propData = protocol.properties[propName]
         var value = proxy[propName]
+        if(value === undefined || value === null) {
+            console.error(`Protocol [${protocol.name}] property [${propName}] has an ${value} value in entity/message data, this should never happen`, protocol)
+        }
 
         if (propData.protocol && propData.isArray) {
             // array of nengi objects
             var arrayIndexBinaryMeta = Binary[propData.arrayIndexType]
             bits += arrayIndexBinaryMeta.bits
             for (var j = 0; j < value.length; j++) {
-
-				if (proxy.text) {
-					//console.log('yo', proxy, proxy.protocol)
-					console.log('aaa', value[j], propData.protocol, ';;', proxy.protocol)
-				}
-
                 bits += countMessageBits(value[j], propData.protocol)
             }      
         } else if (propData.protocol) {
