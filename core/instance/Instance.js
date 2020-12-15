@@ -3,21 +3,21 @@ import EDictionary from '../../external/EDictionary'
 import Historian from './Historian'
 import IdPool from './IdPool'
 import proxify from '../protocol/proxify'
-import compare from '../protocol/compare'
-import copyProxy from '../protocol/copyProxy'
-import Binary from '../binary/Binary'
+// import compare from '../protocol/compare'
+// import copyProxy from '../protocol/copyProxy'
+// import Binary from '../binary/Binary'
 import BinaryType from '../binary/BinaryType'
-import formatUpdates from '../snapshot/entityUpdate/formatUpdates'
+// import formatUpdates from '../snapshot/entityUpdate/formatUpdates'
 import chooseOptimization from '../snapshot/entityUpdate/chooseOptimization'
 import ProtocolMap from '../protocol/ProtocolMap'
 import Client from './Client'
 import createSnapshotBuffer from '../snapshot/writer/createSnapshotBuffer'
 import readCommandBuffer from '../snapshot/reader/readCommandBuffer'
 import createConnectionResponseBuffer from '../snapshot/writer/createConnectionResponseBuffer'
-import createTransferClientBuffer from '../snapshot/writer/createTransferClientBuffer'
-import createTransferRequestBuffer from '../snapshot/writer/createTransferRequestBuffer'
-import createTransferResponseBuffer from '../snapshot/writer/createTransferResponseBuffer'
-import createHandshakeBuffer from '../snapshot/writer/createHandshakeBuffer'
+// import createTransferClientBuffer from '../snapshot/writer/createTransferClientBuffer'
+// import createTransferRequestBuffer from '../snapshot/writer/createTransferRequestBuffer'
+// import createTransferResponseBuffer from '../snapshot/writer/createTransferResponseBuffer'
+// import createHandshakeBuffer from '../snapshot/writer/createHandshakeBuffer'
 
 import consoleLogLogo from '../common/consoleLogLogo'
 import metaConfig from '../common/metaConfig'
@@ -150,23 +150,23 @@ class Instance extends EventEmitter {
     }
 
     sleep(entity) {
-        this.sleepManager.sleep(entity.id)
+        this.sleepManager.sleep(entity[this.config.ID_PROPERTY_NAME])
     }
 
     isAwake(entity) {
-        return this.sleepManager.isAwake(entity.id)
+        return this.sleepManager.isAwake(entity[this.config.ID_PROPERTY_NAME])
     }
 
     isAsleep(entity) {
-        return !this.sleepManager.isAwake(entity.id)
+        return !this.sleepManager.isAwake(entity[this.config.ID_PROPERTY_NAME])
     }
 
     wake(entity) {
-        this.sleepManager.wake(entity.id)
+        this.sleepManager.wake(entity[this.config.ID_PROPERTY_NAME])
     }
 
     wakeOnce(entity) {
-        this.sleepManager.wakeOnce(entity.id)
+        this.sleepManager.wakeOnce(entity[this.config.ID_PROPERTY_NAME])
     }
 
     emitCommands() {
@@ -522,20 +522,20 @@ class Instance extends EventEmitter {
     }
 
     proxifyOrGetCachedProxy(tick, entity) {
-        if (this.proxyCache[tick].entities[entity.id]) {
-            return this.proxyCache[tick].entities[entity.id]
+        if (this.proxyCache[tick].entities[entity[this.config.ID_PROPERTY_NAME]]) {
+            return this.proxyCache[tick].entities[entity[this.config.ID_PROPERTY_NAME]]
         } else {
             if (!entity.protocol) {
                 console.log('PROBLEM Entity/Component:', entity)
                 throw new Error('nengi encountered an entity without a protocol. Did you forget to attach a protocol to an entity or list it in the config? Did you add an entity to the instance that was never supposed to be networked?')
             }
             var proxy = proxify(entity, entity.protocol)
-            this.proxyCache[tick].entities[entity.id] = proxy
+            this.proxyCache[tick].entities[entity[this.config.ID_PROPERTY_NAME]] = proxy
 
             if (this.proxyCache[tick - 1]) {
 
                 //console.log('here')
-                var proxyOld = this.proxyCache[tick - 1].entities[entity.id]
+                var proxyOld = this.proxyCache[tick - 1].entities[entity[this.config.ID_PROPERTY_NAME]]
                 if (proxyOld) {
                     proxy.diff = chooseOptimization(
                         this.config.ID_PROPERTY_NAME,
@@ -562,7 +562,7 @@ class Instance extends EventEmitter {
         if (proxy && proxy.diffTick === tick) {
             return proxy
         }
-        //let old = client.entityCache.getEntity(entity.id)
+        //let old = client.entityCache.getEntity(entity[this.config.ID_PROPERTY_NAME])
         //console.log('found old', old)
         //if (old) {
         if (isDiff) {
@@ -573,10 +573,10 @@ class Instance extends EventEmitter {
             } else {
                 //console.log('old')
                 //proxyOld = proxify(old, entity.protocol)
-                //this.proxyCache[tick].entities[entity.id] = proxyOld
+                //this.proxyCache[tick].entities[entity[this.config.ID_PROPERTY_NAME]] = proxyOld
                 //console.log('had to reproxify an old object')
             }
-            //var proxyOld = this.proxyCache[old._nTick].entities[entity.id]//proxify(old, entity.protocol)
+            //var proxyOld = this.proxyCache[old._nTick].entities[entity[this.config.ID_PROPERTY_NAME]]//proxify(old, entity.protocol)
             if (proxyOld) {
                 this.debugCount++
                 proxy.diff = chooseOptimization(
