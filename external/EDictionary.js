@@ -1,36 +1,37 @@
 class EDictionary {
     constructor(ID_PROPERTY_NAME) {
         this.ID_PROPERTY_NAME = ID_PROPERTY_NAME || 'id'
+        this.map = new Map()
+        this._cachedArray = null
         this.object = {}
-        this.array = []
     }
 
     get size() {
-        return this.array.length
+        return this.map.size
     }
 
     get(id) {
-        var obj = this.object[id]
-        if (typeof obj !== 'undefined') {
-            return this.object[id]
-        }
-        return null 
+        return this.map.get(id) || null
     }
 
     forEach(fn) {
-        for (let i = 0; i < this.array.length; i++) {
-            fn(this.array[i], i)
+        for (const [key, elem] of this.map) {
+            fn(elem)
         }
     }
 
     toArray() {
-        return this.array
+        if (this._cachedArray) {
+            return this._cachedArray
+        }
+        this._cachedArray = [...this.map.values()]
+        return this._cachedArray
     }
 
     add(obj) {
+        this._cachedArray = null
         if (typeof obj === 'object' && typeof obj[this.ID_PROPERTY_NAME] !== 'undefined') {
-            this.object[obj[this.ID_PROPERTY_NAME]] = obj
-            this.array.push(obj)
+            this.map.set(obj[this.ID_PROPERTY_NAME], obj)
         } else {
             throw new Error('EDictionary could not add object, invalid object or object.id.')
         }
@@ -45,25 +46,10 @@ class EDictionary {
     }
 
     removeById(id) {
-        if (typeof id !== 'undefined') {
-            var index = -1
-            for (var i = 0; i < this.array.length; i++) {
-                if (this.array[i][this.ID_PROPERTY_NAME] === id) {
-                    index = i
-                    break
-                }
-            }
-            if (index !== -1) {
-                this.array.splice(index, 1)
-            } else {
-                //throw new Error('EDictionary could not remove object, id not found.')
-            }
-            var temp = this.object[id]
-            delete this.object[id]
-            return temp
-        } else {
-            //throw new Error('EDictionary could not removeById, invalid id.')
-        }
+        this._cachedArray = null
+        const temp = this.map.get(id)
+        this.map.delete(id)
+        return temp
     }
 }
 
