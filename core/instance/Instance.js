@@ -523,15 +523,16 @@ class Instance extends EventEmitter {
 
     proxifyOrGetCachedProxy(tick, entity) {
         const idProperty = this.config.ID_PROPERTY_NAME
-        if (this.proxyCache[tick].entities[entity[idProperty]]) {
-            return this.proxyCache[tick].entities[entity[idProperty]]
+        const entities = this.proxyCache[tick].entities
+        if (entities[entity[idProperty]]) {
+            return entities[entity[idProperty]]
         } else {
             if (!entity.protocol) {
                 console.log('PROBLEM Entity/Component:', entity)
                 throw new Error('nengi encountered an entity without a protocol. Did you forget to attach a protocol to an entity or list it in the config? Did you add an entity to the instance that was never supposed to be networked?')
             }
             var proxy = proxify(entity, entity.protocol)
-            this.proxyCache[tick].entities[entity[idProperty]] = proxy
+            entities[entity[idProperty]] = proxy
 
             if (this.proxyCache[tick - 1]) {
 
@@ -539,7 +540,7 @@ class Instance extends EventEmitter {
                 var proxyOld = this.proxyCache[tick - 1].entities[idProperty]
                 if (proxyOld) {
                     proxy.diff = chooseOptimization(
-                        this.config.ID_PROPERTY_NAME,
+                        idProperty,
                         proxyOld,
                         proxy,
                         entity.protocol

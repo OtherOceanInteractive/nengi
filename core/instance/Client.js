@@ -46,10 +46,11 @@ class Client {
 
     subscribe(channel) {
         //console.log('client subscribed to channel')
+        const idProperty = this.config.ID_PROPERTY_NAME
         this.channels.push(channel)
         channel.entities.forEach(entity => {
             //console.log('entity in channel', entity)
-            this.addCreate(entity[this.config.ID_PROPERTY_NAME])
+            this.addCreate(entity[idProperty])
         })
     }
 

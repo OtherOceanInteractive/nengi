@@ -10,7 +10,7 @@ function WorldState(tick, timeBetweenSnapshots, snapshot, previousWorldState, co
     this.clientTick = snapshot.clientTick
     this.raw = snapshot
     this.processed = false
-   
+
     this.timestamp = snapshot.timestamp
     // entity state
     this.entities = new EDictionary(config.ID_PROPERTY_NAME)
@@ -37,15 +37,16 @@ function WorldState(tick, timeBetweenSnapshots, snapshot, previousWorldState, co
     this.init(snapshot, previousWorldState)
 }
 
-WorldState.prototype.containsUpdateFor = function(id, prop) {
+WorldState.prototype.containsUpdateFor = function (id, prop) {
     if (this.updateLookUp[id] && !isNaN(this.updateLookUp[id][prop])) {
         return true
     }
     return false
 }
 
-WorldState.prototype.init = function(snapshot, previousWorldState) {
+WorldState.prototype.init = function (snapshot, previousWorldState) {
     //console.log(snapshot)
+    const idProperty = this.config.ID_PROPERTY_NAME
     if (previousWorldState) {
         if (this.timestamp === -1) {
             this.timestamp = previousWorldState.timestamp + this.timeBetweenSnapshots
@@ -92,14 +93,14 @@ WorldState.prototype.init = function(snapshot, previousWorldState) {
     snapshot.updateEntities.partial.forEach(update => {
         //console.log('YOLO', update)
         //this.updatedEntityIds.push(singleProp[this.config.ID_PROPERTY_NAME])
-        const id = update[this.config.ID_PROPERTY_NAME]
+        const id = update[idProperty]
         const entity = this.entities.get(id)
         //console.log('b4', entity.x)
         //entity[singleProp.prop] = singleProp.value
         setValue(entity, update.path, update.value)
         //console.log('after', entity.x)
-        const updateCopy = { 
-            [this.config.ID_PROPERTY_NAME]: id, 
+        const updateCopy = {
+            [idProperty]: id,
             prop: update.prop,
             path: update.path,
             value: update.value
@@ -109,13 +110,13 @@ WorldState.prototype.init = function(snapshot, previousWorldState) {
         if (!this.updateLookUp[id]) {
             this.updateLookUp[id] = {}
         }
-        this.updateLookUp[id][updateCopy.prop] = updateCopy.value        
+        this.updateLookUp[id][updateCopy.prop] = updateCopy.value
     })
 
     snapshot.updateEntities.optimized.forEach(batch => {
         //this.updatedEntityIds.push(batch[this.config.ID_PROPERTY_NAME])
 
-        var entity = this.entities.get(batch[this.config.ID_PROPERTY_NAME])
+        var entity = this.entities.get(batch[idProperty])
         batch.updates.forEach(update => {
             if (update.isDelta) {
                 var value = getValue(entity, update.path)
@@ -126,12 +127,12 @@ WorldState.prototype.init = function(snapshot, previousWorldState) {
                 //entity[update.prop] = update.value
             }
 
-            this.updateEntities.push({ 
-                [this.config.ID_PROPERTY_NAME]: batch[this.config.ID_PROPERTY_NAME], 
+            this.updateEntities.push({
+                [idProperty]: batch[idProperty],
                 prop: update.prop,
                 path: update.path,
                 value: entity[update.prop]
-            })           
+            })
         })
     })
 
