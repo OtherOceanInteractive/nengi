@@ -522,23 +522,25 @@ class Instance extends EventEmitter {
     }
 
     proxifyOrGetCachedProxy(tick, entity) {
-        if (this.proxyCache[tick].entities[entity[this.config.ID_PROPERTY_NAME]]) {
-            return this.proxyCache[tick].entities[entity[this.config.ID_PROPERTY_NAME]]
+        const idProperty = this.config.ID_PROPERTY_NAME
+        const entities = this.proxyCache[tick].entities
+        if (entities[entity[idProperty]]) {
+            return entities[entity[idProperty]]
         } else {
             if (!entity.protocol) {
                 console.log('PROBLEM Entity/Component:', entity)
                 throw new Error('nengi encountered an entity without a protocol. Did you forget to attach a protocol to an entity or list it in the config? Did you add an entity to the instance that was never supposed to be networked?')
             }
             var proxy = proxify(entity, entity.protocol)
-            this.proxyCache[tick].entities[entity[this.config.ID_PROPERTY_NAME]] = proxy
+            entities[entity[idProperty]] = proxy
 
             if (this.proxyCache[tick - 1]) {
 
                 //console.log('here')
-                var proxyOld = this.proxyCache[tick - 1].entities[entity[this.config.ID_PROPERTY_NAME]]
+                var proxyOld = this.proxyCache[tick - 1].entities[idProperty]
                 if (proxyOld) {
                     proxy.diff = chooseOptimization(
-                        this.config.ID_PROPERTY_NAME,
+                        idProperty,
                         proxyOld,
                         proxy,
                         entity.protocol
@@ -659,6 +661,7 @@ class Instance extends EventEmitter {
 
     createSnapshot(tick, client, spatialStructure, now) {
         //console.log('CREATE SNAPSHOT')
+        const idProperty = this.config.ID_PROPERTY_NAME
         if (typeof this.proxyCache[tick] === 'undefined') {
             this.proxyCache[tick] = {
                 entities: {},
@@ -744,7 +747,7 @@ class Instance extends EventEmitter {
             let id = vision.stillVisible[i]
             // console.log('doing id', id)
             let entity = this.getEntity(id)
-            if (this.sleepManager.isAwake(entity[this.config.ID_PROPERTY_NAME])) {
+            if (this.sleepManager.isAwake(entity[idProperty])) {
                 let proxy = this.proxifyOrGetCachedProxyPerClient(client, entity, tick, true)
                 //console.log(proxy)
 

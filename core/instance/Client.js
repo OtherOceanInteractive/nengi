@@ -46,10 +46,11 @@ class Client {
 
     subscribe(channel) {
         //console.log('client subscribed to channel')
+        const idProperty = this.config.ID_PROPERTY_NAME
         this.channels.push(channel)
         channel.entities.forEach(entity => {
             //console.log('entity in channel', entity)
-            this.addCreate(entity[this.config.ID_PROPERTY_NAME])
+            this.addCreate(entity[idProperty])
         })
     }
 
@@ -78,17 +79,18 @@ class Client {
         } else {
             this.cache[id] = tick
             toUpdate.push(id)
-        }        
+        }
 
         const children = this.instance.parents.get(id)
- 
+
         if (children) {
-            children.forEach(id => this.createOrUpdate(id, tick, toCreate,  toUpdate))
+            children.forEach(id => this.createOrUpdate(id, tick, toCreate, toUpdate))
         }
     }
 
     checkVisibility(spatialStructure, tick) {
         //console.log(this.entityCache)
+        const idProperty = this.config.ID_PROPERTY_NAME
         const toCreate = []
         const toUpdate = []
         const toDelete = []
@@ -111,18 +113,18 @@ class Client {
         // console.log(this.view.x, this.view.y, this.entity.x, this.entity.y, nearby.entities.length)
         const eventIds = []
         for (var i = 0; i < nearby.events.length; i++) {
-            eventIds.push(nearby.events[i][this.config.ID_PROPERTY_NAME])
+            eventIds.push(nearby.events[i][idProperty])
         }
 
         for (let i = 0; i < nearby.entities.length; i++) {
             const entity = nearby.entities[i]
-            const id = entity[this.config.ID_PROPERTY_NAME]
+            const id = entity[idProperty]
             this.createOrUpdate(id, tick, toCreate, toUpdate)
         }
 
         this.channels.forEach(channel => {
             channel.entities.forEach(entity => {
-                const id = entity[this.config.ID_PROPERTY_NAME]
+                const id = entity[idProperty]
                 this.createOrUpdate(id, tick, toCreate, toUpdate)
             })
         })
