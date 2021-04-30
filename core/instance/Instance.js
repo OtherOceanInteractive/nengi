@@ -661,6 +661,7 @@ class Instance extends EventEmitter {
 
     createSnapshot(tick, client, spatialStructure, now) {
         //console.log('CREATE SNAPSHOT')
+        const idProperty = this.config.ID_PROPERTY_NAME
         if (typeof this.proxyCache[tick] === 'undefined') {
             this.proxyCache[tick] = {
                 entities: {},
@@ -746,7 +747,7 @@ class Instance extends EventEmitter {
             let id = vision.stillVisible[i]
             // console.log('doing id', id)
             let entity = this.getEntity(id)
-            if (this.sleepManager.isAwake(entity[this.config.ID_PROPERTY_NAME])) {
+            if (this.sleepManager.isAwake(entity[idProperty])) {
                 let proxy = this.proxifyOrGetCachedProxyPerClient(client, entity, tick, true)
                 //console.log(proxy)
 
