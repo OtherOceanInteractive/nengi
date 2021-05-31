@@ -1,8 +1,6 @@
 
 import Binary from '../binary/Binary';
 
-const usedMap = new Map()
-
 function IdPool(binaryType) {
     this.min = 0
     this.max = Binary[binaryType].max
@@ -17,15 +15,7 @@ function IdPool(binaryType) {
 
 IdPool.prototype.nextId = function() {
     if (this.pool.length > 0) {
-        const id = this.pool.pop()
-        if(usedMap.has(id)) {
-            const timesUsed = usedMap.get(id)
-            usedMap.set(id, timesUsed+1)
-            console.log(`reusing #${id}, ${timesUsed}`)
-        } else {
-            usedMap.set(id, 1)
-        }
-        return id
+        return this.pool.pop()
     }
     throw new Error('IdPool overflow')
 }
