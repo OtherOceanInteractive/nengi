@@ -396,6 +396,7 @@ class Instance extends EventEmitter {
         const nid = this.entityIdPool.nextId()
         entity[this.config.ID_PROPERTY_NAME] = nid
         entity[this.config.TYPE_PROPERTY_NAME] = this.protocols.getIndex(entity.protocol)
+        console.log(`addEntity sleeping? #${nid}: ${this.isAsleep(entity)}`)
         this._entities.add(entity)
         this.entities.add(entity)
 
@@ -410,6 +411,7 @@ class Instance extends EventEmitter {
             this.basicSpace.entities.remove(entity)
         }
         const id = entity[this.config.ID_PROPERTY_NAME]
+        this.wake(entity)
         this.deleteEntities.push(id)
         this._entities.remove(entity)
         this.entities.remove(entity)
