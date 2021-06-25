@@ -202,11 +202,20 @@ class Client extends EventEmitter {
     }
 
     readNetwork() {
-        if (this.snapshots[this.snapshots.length - 20]) {
-            if (this.snapshots[this.snapshots.length - 20].processed) {
-                this.snapshots.splice(this.snapshots.length - 20, 1)
+        const snapshots = this.snapshots
+        //const len = snapshots.length
+
+        let processedCount = 0
+        for (let i = 0; i < snapshots.length - 20; i++) {
+            const snapshot = snapshots[i];
+            if (snapshot.processed) {
+                processedCount++
+            } else {
+                break;
             }
         }
+        snapshots.splice(0, processedCount)
+        //console.log('processed', processedCount, len, snapshots.length)
 
         //console.log('this.chronus.averageTimeDifference', this.chronus.averageTimeDifference)
 
