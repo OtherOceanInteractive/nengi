@@ -32,9 +32,9 @@ class Client extends EventEmitter {
         this.serverTick = 0
         this.tickLength = 1000 / this.config.UPDATE_RATE
 
-        this.cr = []
-        this.up = []
-        this.de = []
+        //this.cr = []
+        //this.up = []
+        //this.de = []
 
         this.averagePing = 100
         this.pings = []
@@ -102,16 +102,16 @@ class Client extends EventEmitter {
 
         snapshot.createEntities.forEach(entity => {
             this.entityCache.saveEntity(entity, entity.protocol)
-            this.cr.push(entity)
+            //this.cr.push(entity)
         })
         snapshot.updateEntities.partial.forEach(update => {
             this.entityCache.updateEntityPartial(update.id, update.path, update.value)
-            this.up.push(update)
+            //this.up.push(update)
         })
 
         snapshot.deleteEntities.forEach(id => {
             this.entityCache.deleteEntity(id)
-            this.de.push(id)
+            //this.de.push(id)
         })
 
         //console.log('snapshot', this.averagePing, this.avgDiff, snapshot.createEntities.length, snapshot.updateEntities.partial.length, snapshot.deleteEntities.length)
