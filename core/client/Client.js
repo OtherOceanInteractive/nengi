@@ -203,7 +203,7 @@ class Client extends EventEmitter {
 
     readNetwork() {
         const snapshots = this.snapshots
-        const len = snapshots.length
+        //const len = snapshots.length
 
         let processedCount = 0
         for (let i = 0; i < snapshots.length - 20; i++) {
