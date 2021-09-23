@@ -35,7 +35,7 @@ interface EDictionary {
 
 declare namespace nengi {
     export class Instance {
-        constructor(config: any, webConfig: any)
+        constructor(config: any, webConfig: any, worldWidth: number, worldHeight: number, gridCellSize: number)
 
         clients: EDictionary
 
@@ -85,7 +85,7 @@ declare namespace nengi {
 
         // none of these are intended for public consumption
         //onMessage(message: any, client: any): void
-        //getNextCommand(): any
+        getNextCommand(): any
         //onConnect(callback: any): void
         //onDisconnect(callback: any): void
         //acceptConnection(client: any, text: string): void
@@ -134,7 +134,7 @@ declare namespace nengi {
     }
 
     export class Client {
-        constructor(config: any, interDelay: number)
+        constructor(config: any, interDelay?: number)
         /**
          * Connect to an instance
          * 
