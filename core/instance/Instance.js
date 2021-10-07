@@ -23,10 +23,10 @@ import consoleLogLogo from '../common/consoleLogLogo'
 import metaConfig from '../common/metaConfig'
 import NoInterpsMessage from '../common/NoInterpsMessage'
 import Sleep from './Sleep'
-
 import BasicSpace from './BasicSpace'
 import { EventEmitter } from 'events'
 import Channel from './Channel'
+import GridBasedInterestManagement from './GridBasedInterestManagement'
 
 //const Components = require('./Components')
 const defaults = {
@@ -40,7 +40,7 @@ const defaults = {
 }
 
 class Instance extends EventEmitter {
-    constructor(config, webConfig) {
+    constructor(config, webConfig, worldWidth, worldHeight, gridCellSize) {
         super()
         /* defaults */
         if (!config) {
@@ -84,8 +84,12 @@ class Instance extends EventEmitter {
         //this.components = new Components(this)
 
         this.historian = new Historian(config.UPDATE_RATE, config.HISTORIAN_TICKS, config.ID_PROPERTY_NAME)
-        // if no history
-        this.basicSpace = new BasicSpace(config.ID_PROPERTY_NAME)
+
+        if (this.config.USE_GRID_BASED_INTEREST_MANAGEMENT) {
+            this.spatialStructure = new GridBasedInterestManagement(config.ID_PROPERTY_NAME, worldWidth, worldHeight, gridCellSize)
+        } else {
+            this.spatialStructure = new BasicSpace(config.ID_PROPERTY_NAME)
+        }
 
         this.commands = []
 
@@ -390,7 +394,11 @@ class Instance extends EventEmitter {
 
     addEntity(entity) {
         if (!entity.protocol) {
-            throw new Error('Object is missing a protocol or protocol was not supplied via config.')
+            throw new Error('Entity is missing a protocol or protocol was not supplied via config.')
+        }
+
+        if (typeof entity.isStaticEntity !== "boolean") {
+            throw new Error('Entity is missing the newly required `isStaticEntity` flag')
         }
 
         const nid = this.entityIdPool.nextId()
@@ -400,14 +408,14 @@ class Instance extends EventEmitter {
         this.entities.add(entity)
 
         if (!this.config.USE_HISTORIAN) {
-            this.basicSpace.insertEntity(entity)
+            this.spatialStructure.insertEntity(entity)
         }
         return entity
     }
 
     removeEntity(entity) {
         if (!this.config.USE_HISTORIAN) {
-            this.basicSpace.entities.remove(entity)
+            this.spatialStructure.removeEntity(entity)
         }
         const id = entity[this.config.ID_PROPERTY_NAME]
         this.wake(entity)
@@ -463,7 +471,7 @@ class Instance extends EventEmitter {
         if (this.config.USE_HISTORIAN) {
             this.localEvents.push(lEvent)
         } else {
-            this.basicSpace.insertEvent(lEvent)
+            this.spatialStructure.insertEvent(lEvent)
         }
 
         return lEvent
@@ -494,6 +502,8 @@ class Instance extends EventEmitter {
             throw new Error('Object is missing a protocol or protocol was not supplied via config.')
         }
         message[this.config.TYPE_PROPERTY_NAME] = this.protocols.getIndex(message.protocol)
+
+        // console.log("foo", clientOrClients)
 
         if (Array.isArray(clientOrClients)) {
             clientOrClients.forEach(client => {
@@ -625,11 +635,19 @@ class Instance extends EventEmitter {
 
         //this.components.process()
 
-        var spatialStructure = (this.config.USE_HISTORIAN) ? this.historian.getCurrentState() : this.basicSpace
+        let spatialStructure = (this.config.USE_HISTORIAN) ? this.historian.getCurrentState() : this.spatialStructure
+
+        if (this.config.USE_HISTORIAN === false) {
+            // console.time('partitionUpkeep')
+            spatialStructure.update()
+            // console.timeEnd('partitionUpkeep')
+        }
+
 
         var now = Date.now()
         var clients = this.clients.toArray()
 
+        // console.time('iteratingOverClients')
         for (var i = 0; i < clients.length; i++) {
             var client = clients[i]
 
@@ -642,6 +660,7 @@ class Instance extends EventEmitter {
                 client.saveSnapshot(snapshot, this.protocols, this.tick)
             }
         }
+        // console.timeEnd('iteratingOverClients')
 
         delete this.proxyCache[this.tick - 20]
 
@@ -656,7 +675,7 @@ class Instance extends EventEmitter {
         this.debugCount = 0
 
         if (!this.config.USE_HISTORIAN) {
-            this.basicSpace.flushEvents()
+            this.spatialStructure.flushEvents()
         }
     }
 

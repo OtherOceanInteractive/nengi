@@ -15,6 +15,8 @@ function IdPool(binaryType) {
 
 IdPool.prototype.nextId = function() {
     if (this.pool.length > 0) {
+        // var id = this.pool.pop()
+        // console.log("granting nid:", id)
         return this.pool.pop()
     }
     throw new Error('IdPool overflow')
