@@ -10,16 +10,16 @@ class GridCell {
     }
 }
 
-Number.prototype.clamp = function(min, max) {
-  return Math.min(Math.max(this, min), max);
+Number.prototype.clamp = function (min, max) {
+    return Math.min(Math.max(this, min), max);
 };
 
 export default class GridBasedInterestManagement {
     constructor(ID_PROPERTY_NAME, worldWidth, worldHeight, cellSize) {
         this.ID_PROPERTY_NAME = ID_PROPERTY_NAME || "id";
         this.events = new EDictionary(ID_PROPERTY_NAME);
-        this.worldWidth = worldWidth;
-        this.worldHeight = worldHeight;
+        this.worldWidth = worldWidth + cellSize;
+        this.worldHeight = worldHeight + cellSize;
         this.gridCellSize = cellSize;
         this.thresholdToBeConsideredABigEntity = 400
         this.gridWidth = Math.floor(this.worldWidth / this.gridCellSize);
@@ -260,7 +260,7 @@ export default class GridBasedInterestManagement {
                 if (j > indexInCell) {
                     const entityThatNeedsCellIndexUpdate = oldEntityCell.dynamicEntities[j]
 
-                    entityThatNeedsCellIndexUpdate.nengiInternalSpatialGridCellEntityListIndex  -= 1;
+                    entityThatNeedsCellIndexUpdate.nengiInternalSpatialGridCellEntityListIndex -= 1;
                 }
             }
 
@@ -278,5 +278,5 @@ export default class GridBasedInterestManagement {
         }
     }
 
-    release() {}
+    release() { }
 }
