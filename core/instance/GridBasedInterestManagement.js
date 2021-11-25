@@ -16,7 +16,6 @@ Number.prototype.clamp = function (min, max) {
 
 export default class GridBasedInterestManagement {
     constructor(ID_PROPERTY_NAME, worldWidth, worldHeight, cellSize) {
-        console.log('wtf man')
         this.ID_PROPERTY_NAME = ID_PROPERTY_NAME || "id";
         this.events = new EDictionary(ID_PROPERTY_NAME);
         this.worldWidth = worldWidth + cellSize;
