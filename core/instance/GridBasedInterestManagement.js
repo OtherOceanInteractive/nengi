@@ -37,7 +37,7 @@ export default class GridBasedInterestManagement {
 
         this.cells = [];
 
-        for (let i = 0; i < this.gridWidth * this.gridHeight; i++) {
+        for (let i = 0; i <= this.gridWidth * this.gridHeight; i++) {
             this.cells[i] = new GridCell();
         }
     }
