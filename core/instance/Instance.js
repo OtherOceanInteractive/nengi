@@ -1,4 +1,4 @@
-import { WebSocketServer } from '@clusterws/cws'
+import uSocket from 'uWebSockets.js'
 import EDictionary from '../../external/EDictionary'
 import Historian from './Historian'
 import IdPool from './IdPool'
@@ -118,35 +118,55 @@ class Instance extends EventEmitter {
         }
 
         if (typeof webConfig.port !== 'undefined') {
-            this.wsServer = new WebSocketServer({ port: webConfig.port }, () => {
-                //console.log(this.wsServer)
+            this.wsServer = uSocket.App()
+            this.wsServer.listen(webConfig.port, (token) => {
+
             })
         } else if (typeof webConfig.httpServer !== 'undefined') {
-            this.wsServer = new WebSocketServer({ server: webConfig.httpServer })
+            this.wsServer = uSocket.App()
+            this.wsServer.listen(webConfig.httpServer, (token) => {
+
+            })
         } else if (typeof webConfig.mock !== 'undefined') {
+            throw new Error('Mock not implemented/deprecated with cWS -> uWebSockets change')
             // using a connectionless mock mode, see spec folder for interface
-            this.wsServer = webConfig.mock
+            // this.wsServer = webConfig.mock
         } else {
             throw new Error('Instance must be passed a config that contains a port or an http server.')
         }
 
-        this.wsServer.on('connection', (ws, req) => {
-            var client = this.connect(ws)
-            ws.on('message', message => {
-                this.onMessage(message, client)
-            })
-
-            ws.on('close', (event) => {
+        this.wsServer.ws('/*', {
+            open: (ws) => {
+                ws.client = this.connect(ws)
+            },
+            message: (ws, message, isBinary) => {
+                this.onMessage(Buffer.from(message).toString(), ws.client)
+            },
+            close: (ws, code, message) => {
                 if (this.config.LOGGING) {
-                    console.log(`nengi: ws close id:${client.id}`)
+                    console.log(`nengi: ws close id:${ws.client.id}`)
                 }
-                this.disconnect(client, event)
-            })
-        })
 
-        this.wsServer.on('error', err => {
-            console.error(err)
-        });
+                this.disconnect(ws.client, event)
+            }
+        })
+        // this.wsServer.on('connection', (ws, req) => {
+        //     var client = this.connect(ws)
+        //     ws.on('message', message => {
+        //         this.onMessage(message, client)
+        //     })
+
+        //     ws.on('close', (event) => {
+        //         if (this.config.LOGGING) {
+        //             console.log(`nengi: ws close id:${client.id}`)
+        //         }
+        //         this.disconnect(client, event)
+        //     })
+        // })
+
+        // this.wsServer.on('error', err => {
+        //     console.error(err)
+        // });
     }
 
     noInterp(id) {
@@ -252,6 +272,18 @@ class Instance extends EventEmitter {
     }
 
     acceptConnection(client, text) {
+        this.pendingClients.delete(client.connection)
+        this.addClient(client)
+        client.accepted = true
+
+        var bitBuffer = createConnectionResponseBuffer(true, text)
+        var buffer = bitBuffer.toBuffer()
+
+        if (client.connection.readyState === 1) {
+            client.connection.send(buffer, { binary: true })
+        }
+
+        /*
         if (client.connection.readyState === 1) {
             this.pendingClients.delete(client.connection)
             this.addClient(client)
@@ -278,6 +310,7 @@ class Instance extends EventEmitter {
                 this.disconnectCallback(client, null)
             }
         }
+        */
     }
 
     denyConnection(client, text) {
@@ -286,10 +319,13 @@ class Instance extends EventEmitter {
         var bitBuffer = createConnectionResponseBuffer(false, text)
         var buffer = bitBuffer.toBuffer()
 
-        if (client.connection.readyState === 1) {
-            client.connection.send(buffer, { binary: true })
-            client.connection.close()
-        }
+        client.connection.send(buffer, { binary: true })
+        client.connection.close()
+
+        // if (client.connection.readyState === 1) {
+        //     client.connection.send(buffer, { binary: true })
+        //     client.connection.close()
+        // }
     }
 
     connect(connection) {
@@ -655,10 +691,14 @@ class Instance extends EventEmitter {
             var bitBuffer = createSnapshotBuffer(snapshot, this.config)
             var buffer = bitBuffer.toBuffer()
 
-            if (client.connection.readyState === 1) {
-                client.connection.send(buffer, { binary: true })
-                client.saveSnapshot(snapshot, this.protocols, this.tick)
-            }
+            client.connection.send(buffer, { binary: true })
+            client.saveSnapshot(snapshot, this.protocols, this.tick)
+
+
+            // if (client.connection.readyState === 1) {
+            //     client.connection.send(buffer, { binary: true })
+            //     client.saveSnapshot(snapshot, this.protocols, this.tick)
+            // }
         }
         // console.timeEnd('iteratingOverClients')
 
