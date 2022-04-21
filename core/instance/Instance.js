@@ -140,7 +140,7 @@ class Instance extends EventEmitter {
                 ws.client = this.connect(ws)
             },
             message: (ws, message, isBinary) => {
-                this.onMessage(Buffer.from(message).toString(), ws.client)
+                this.onMessage(message, ws.client)
             },
             close: (ws, code, message) => {
                 if (this.config.LOGGING) {
