@@ -146,8 +146,10 @@ class Instance extends EventEmitter {
                 if (this.config.LOGGING) {
                     console.log(`nengi: ws close id:${ws.client.id}`)
                 }
+                
+                ws.client.closed = true
 
-                this.disconnect(ws.client, code, true)
+                this.disconnect(ws.client, code)
             }
         })
     }
@@ -256,13 +258,16 @@ class Instance extends EventEmitter {
 
     acceptConnection(client, text) {
         this.pendingClients.delete(client.connection)
-        this.addClient(client)
-        client.accepted = true
 
-        var bitBuffer = createConnectionResponseBuffer(true, text)
-        var buffer = bitBuffer.toBuffer()
+        if(!client.closed) {
+            this.addClient(client)
+            client.accepted = true
 
-        client.connection.send(buffer, { binary: true })
+            var bitBuffer = createConnectionResponseBuffer(true, text)
+            var buffer = bitBuffer.toBuffer()
+            
+            client.connection.send(buffer, { binary: true })
+        }
     }
 
     denyConnection(client, text) {
@@ -271,8 +276,10 @@ class Instance extends EventEmitter {
         var bitBuffer = createConnectionResponseBuffer(false, text)
         var buffer = bitBuffer.toBuffer()
 
-        client.connection.send(buffer, { binary: true })
-        client.connection.close()
+        if(!client.closed) {
+            client.connection.send(buffer, { binary: true })
+            client.connection.close()
+        }
     }
 
     connect(connection) {
@@ -295,12 +302,8 @@ class Instance extends EventEmitter {
                 this.disconnectCallback(client, event)
             }
 
-            if(!isAlreadyClosed) {
-                try {
-                    client.connection.close()
-                } catch(err) {
-
-                }
+            if(!client.closed) {
+                client.connection.close()
             }
         } else {
             // This client appears to have disconnected INBETWEEN the websocket connection forming
@@ -312,12 +315,8 @@ class Instance extends EventEmitter {
             client.id = -1
             client.instance = null
 
-           if(!isAlreadyClosed) {
-                try {
-                    client.connection.close()
-                } catch(err) {
-
-                }
+            if(!client.closed) {
+                client.connection.close()
             }
 
             if (typeof this.disconnectCallback === 'function') {
@@ -655,8 +654,10 @@ class Instance extends EventEmitter {
             // There should probably be a check for backPressure here
             // but I'm not knowledgable about nengi enough to know what 
             // value is too much, or what even to do if the value is too much
-            client.connection.send(buffer, { binary: true })
-            client.saveSnapshot(snapshot, this.protocols, this.tick)
+            if(!client.closed) {
+                client.connection.send(buffer, { binary: true })
+                client.saveSnapshot(snapshot, this.protocols, this.tick)
+            }
 
 
             // if (client.connection.readyState === 1) {
