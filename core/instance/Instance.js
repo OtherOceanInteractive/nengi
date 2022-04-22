@@ -147,7 +147,7 @@ class Instance extends EventEmitter {
                     console.log(`nengi: ws close id:${ws.client.id}`)
                 }
 
-                this.disconnect(ws.client, event)
+                this.disconnect(ws.client, code)
             }
         })
         // this.wsServer.on('connection', (ws, req) => {
@@ -279,9 +279,7 @@ class Instance extends EventEmitter {
         var bitBuffer = createConnectionResponseBuffer(true, text)
         var buffer = bitBuffer.toBuffer()
 
-        if (client.connection.readyState === 1) {
-            client.connection.send(buffer, { binary: true })
-        }
+        client.connection.send(buffer, { binary: true })
 
         /*
         if (client.connection.readyState === 1) {
