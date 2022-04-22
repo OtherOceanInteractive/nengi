@@ -27,8 +27,8 @@
     "author": "Alex Bennett // timetocode",
     "license": "Apache 2.0",
     "dependencies": {
-        "@clusterws/cws": "^3.0.0",
         "esm": "^3.2.22",
+        "uWebSockets.js": "uNetworking/uWebSockets.js#v20.8.0",
         "utf8": "^3.0.0"
     },
     "devDependencies": {

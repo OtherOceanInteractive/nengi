@@ -9,10 +9,6 @@ import createPongBuffer from '../snapshot/writer/createPongBuffer';
 import Chronus from '../client/Chronus';
 import Outbound from '../client/Outbound';
 
-//const W3CWebSocket = require('websocket').w3cwebsocket
-//const WebSocket = require('ws')
-import { WebSocket } from '@clusterws/cws';
-
 class Bot {
     constructor(config, protocols) {
         this.config = config

@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events'
 
+// Deprecated with cWS to uWebSockets change
+
 const connectionMocker = () => {
     const createSockets = () =>{
         const serverSocket = new EventEmitter()

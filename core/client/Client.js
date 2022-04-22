@@ -21,6 +21,7 @@ class Client extends EventEmitter {
         this.connectionOpen = null
         this.connectionClose = null
         this.websocket = null
+        this.closed = false
         this.snapshots = []
         this.outbound = new Outbound(this.protocols, this.websocket, this.config)
         this.chronus = new Chronus()
