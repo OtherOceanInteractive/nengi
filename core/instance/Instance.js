@@ -147,26 +147,9 @@ class Instance extends EventEmitter {
                     console.log(`nengi: ws close id:${ws.client.id}`)
                 }
 
-                this.disconnect(ws.client, code)
+                this.disconnect(ws.client, code, true)
             }
         })
-        // this.wsServer.on('connection', (ws, req) => {
-        //     var client = this.connect(ws)
-        //     ws.on('message', message => {
-        //         this.onMessage(message, client)
-        //     })
-
-        //     ws.on('close', (event) => {
-        //         if (this.config.LOGGING) {
-        //             console.log(`nengi: ws close id:${client.id}`)
-        //         }
-        //         this.disconnect(client, event)
-        //     })
-        // })
-
-        // this.wsServer.on('error', err => {
-        //     console.error(err)
-        // });
     }
 
     noInterp(id) {
@@ -280,35 +263,6 @@ class Instance extends EventEmitter {
         var buffer = bitBuffer.toBuffer()
 
         client.connection.send(buffer, { binary: true })
-
-        /*
-        if (client.connection.readyState === 1) {
-            this.pendingClients.delete(client.connection)
-            this.addClient(client)
-            client.accepted = true
-
-            var bitBuffer = createConnectionResponseBuffer(true, text)
-            var buffer = bitBuffer.toBuffer()
-
-            if (client.connection.readyState === 1) {
-                client.connection.send(buffer, { binary: true })
-            }
-        } else {
-            // This client appears to have disconnected INBETWEEN the websocket connection forming
-            // and the game logic choosing to accept the connection, so the game logic at this very moment
-            // is probably running asynchronous code in an instance.on('connect', () => {}) block
-            // We need to tell the game to disconnect this client.
-            this.pendingClients.delete(client.connection)
-
-            client.id = -1
-            client.instance = null
-
-            client.connection.close()
-            if (typeof this.disconnectCallback === 'function') {
-                this.disconnectCallback(client, null)
-            }
-        }
-        */
     }
 
     denyConnection(client, text) {
@@ -319,11 +273,6 @@ class Instance extends EventEmitter {
 
         client.connection.send(buffer, { binary: true })
         client.connection.close()
-
-        // if (client.connection.readyState === 1) {
-        //     client.connection.send(buffer, { binary: true })
-        //     client.connection.close()
-        // }
     }
 
     connect(connection) {
@@ -333,7 +282,7 @@ class Instance extends EventEmitter {
         return client
     }
 
-    disconnect(client, event) {
+    disconnect(client, event, isAlreadyClosed) {
         if (this.config.LOGGING) {
             console.log(`nengi: disconnect:${client.id}`)
         }
@@ -345,7 +294,14 @@ class Instance extends EventEmitter {
             if (typeof this.disconnectCallback === 'function') {
                 this.disconnectCallback(client, event)
             }
-            client.connection.close()
+
+            if(!isAlreadyClosed) {
+                try {
+                    client.connection.close()
+                } catch(err) {
+
+                }
+            }
         } else {
             // This client appears to have disconnected INBETWEEN the websocket connection forming
             // and the game logic choosing to accept the connection, so the game logic at this very moment
@@ -356,7 +312,14 @@ class Instance extends EventEmitter {
             client.id = -1
             client.instance = null
 
-            client.connection.close()
+           if(!isAlreadyClosed) {
+                try {
+                    client.connection.close()
+                } catch(err) {
+
+                }
+            }
+
             if (typeof this.disconnectCallback === 'function') {
                 this.disconnectCallback(client, null)
             }
@@ -689,6 +652,9 @@ class Instance extends EventEmitter {
             var bitBuffer = createSnapshotBuffer(snapshot, this.config)
             var buffer = bitBuffer.toBuffer()
 
+            // There should probably be a check for backPressure here
+            // but I'm not knowledgable about nengi enough to know what 
+            // value is too much, or what even to do if the value is too much
             client.connection.send(buffer, { binary: true })
             client.saveSnapshot(snapshot, this.protocols, this.tick)
 
