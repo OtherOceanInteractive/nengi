@@ -267,6 +267,19 @@ class Instance extends EventEmitter {
             var buffer = bitBuffer.toBuffer()
             
             client.connection.send(buffer, { binary: true })
+        } else {
+            // This client appears to have disconnected INBETWEEN the websocket connection forming
+            // and the game logic choosing to accept the connection, so the game logic at this very moment
+            // is probably running asynchronous code in an instance.on('connect', () => {}) block
+            // We need to tell the game to disconnect this client.
+            this.pendingClients.delete(client.connection)
+
+            client.id = -1
+            client.instance = null
+
+            if (typeof this.disconnectCallback === 'function') {
+                this.disconnectCallback(client, null)
+            }
         }
     }
 
@@ -289,7 +302,7 @@ class Instance extends EventEmitter {
         return client
     }
 
-    disconnect(client, event, isAlreadyClosed) {
+    disconnect(client, event) {
         if (this.config.LOGGING) {
             console.log(`nengi: disconnect:${client.id}`)
         }
