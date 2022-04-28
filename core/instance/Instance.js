@@ -117,16 +117,11 @@ class Instance extends EventEmitter {
             consoleLogLogo()
         }
 
+        let port 
         if (typeof webConfig.port !== 'undefined') {
-            this.wsServer = uSocket.App()
-            this.wsServer.listen(webConfig.port, (token) => {
-
-            })
+            port = webConfig.port
         } else if (typeof webConfig.httpServer !== 'undefined') {
-            this.wsServer = uSocket.App()
-            this.wsServer.listen(webConfig.httpServer, (token) => {
-
-            })
+            port = webConfig.httpServer
         } else if (typeof webConfig.mock !== 'undefined') {
             throw new Error('Mock not implemented/deprecated with cWS -> uWebSockets change')
             // using a connectionless mock mode, see spec folder for interface
@@ -134,7 +129,16 @@ class Instance extends EventEmitter {
         } else {
             throw new Error('Instance must be passed a config that contains a port or an http server.')
         }
-
+        
+        if(config.USE_SSL) {
+            this.wsServer = uSocket.SSLApp({
+                key_file_name: config.KEY_FILE_NAME,
+                cert_file_name: config.CERT_FILE_NAME
+            })
+        } else {
+            this.wsServer = uSocket.App()
+        }
+        
         this.wsServer.ws('/*', {
             open: (ws) => {
                 ws.client = this.connect(ws)
@@ -151,6 +155,14 @@ class Instance extends EventEmitter {
 
                 this.disconnect(ws.client, code)
             }
+        }).listen(port, (token) => {
+            if(config.LOGGING) {
+                if(token) {
+                    console.log("Nengi server listening on port " + port)
+                } else {
+                    console.error("Nengi server FAILED to listen on port " + port)
+                }
+            } 
         })
     }
 
