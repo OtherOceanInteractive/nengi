@@ -1,4 +1,4 @@
-import uSocket from 'uWebSockets.js'
+import { Server } from 'mock-socket'
 import EDictionary from '../../external/EDictionary'
 import Historian from './Historian'
 import IdPool from './IdPool'
@@ -130,23 +130,16 @@ class Instance extends EventEmitter {
             throw new Error('Instance must be passed a config that contains a port or an http server.')
         }
         
-        if(config.USE_SSL) {
-            this.wsServer = uSocket.SSLApp({
-                key_file_name: config.KEY_FILE_NAME,
-                cert_file_name: config.CERT_FILE_NAME
-            })
-        } else {
-            this.wsServer = uSocket.App()
-        }
-        
-        this.wsServer.ws('/*', {
-            open: (ws) => {
-                ws.client = this.connect(ws)
-            },
-            message: (ws, message, isBinary) => {
-                this.onMessage(message, ws.client)
-            },
-            close: (ws, code, message) => {
+        this.wsServer = new Server('ws://localhost:8080')
+
+		this.wsServer.on('connection', (ws) => {
+			ws.on('open', () => {
+				ws.client = this.connect(ws)
+			})
+			ws.on('message', (data) => {
+				this.onMessage(message, ws.client)
+			})
+			ws.on('close', () => {
                 if (this.config.LOGGING) {
                     console.log(`nengi: ws close id:${ws.client.id}`)
                 }
@@ -154,16 +147,9 @@ class Instance extends EventEmitter {
                 ws.client.closed = true
 
                 this.disconnect(ws.client, code)
-            }
-        }).listen(port, (token) => {
-            if(config.LOGGING) {
-                if(token) {
-                    console.log("Nengi server listening on port " + port)
-                } else {
-                    console.error("Nengi server FAILED to listen on port " + port)
-                }
-            } 
-        })
+			})
+			console.log("Nengi server listening on port " + port)
+		})
     }
 
     noInterp(id) {

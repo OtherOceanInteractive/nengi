@@ -28,7 +28,7 @@
     "license": "Apache 2.0",
     "dependencies": {
         "esm": "^3.2.22",
-        "uWebSockets.js": "uNetworking/uWebSockets.js#v20.8.0",
+        "mock-socket": "^9.1.5",
         "utf8": "^3.0.0"
     },
     "devDependencies": {
